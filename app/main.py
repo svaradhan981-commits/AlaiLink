@@ -11,6 +11,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 @app.get("/hello")
 def hello(settings: SettingsDep) -> dict:
     return {"message": f"Hello  {settings.app_name} in {settings.environment}!"}
+
 @app.get("/health")
 def health(settings: SettingsDep) -> dict:
     """Liveness: the process is up. Must be fast and must not call the LLM or the DB."""
