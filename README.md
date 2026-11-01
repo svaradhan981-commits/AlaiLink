@@ -51,6 +51,53 @@ uvicorn app.main:app --reload
 curl http://localhost:8000/health
 ```
 
+## Chat and retrieval API
+
+Configure `LLM_API_KEY` in your local `.env` file. The initial client uses an
+OpenAI-compatible chat-completions endpoint; configure `LLM_MODEL`, `LLM_BASE_URL`,
+and `LLM_TIMEOUT_SECONDS` there as needed. API keys are never stored in source.
+
+```bash
+curl -X POST http://localhost:8000/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"question\":\"மீன்பிடி தடை கால நிவாரணம் எவ்வளவு?\",\"language\":\"ta\"}"
+```
+
+The endpoint returns a structured answer, language, sources, and a summary capped
+at 160 characters. It retrieves chunks from PostgreSQL/pgvector and asks the model
+to answer only from those cited official documents. If no relevant, URL-backed
+evidence is found, the API returns a clear unable-to-verify answer without asking
+the LLM to guess. A missing API key returns HTTP 503, a provider timeout returns
+HTTP 504, and other provider failures return HTTP 502.
+
+For progressive Server-Sent Events, use `POST /chat/stream` with the same JSON
+request. `delta` events contain JSON-output fragments from the provider, `reset`
+indicates that a failed partial attempt was discarded before a retry/fallback,
+`complete` contains the validated chat response, and `error` contains a safe error
+message. In Swagger, open `/docs`, choose `POST /chat/stream`, and execute a request;
+for streaming event inspection, use an SSE-capable client such as `curl -N`.
+
+## Document retrieval
+
+Set `DATABASE_URL` and the embedding variables shown in `.env.example`. The default
+embedding adapter uses Gemini's `gemini-embedding-001` model with 768 dimensions;
+it uses `EMBEDDING_API_KEY` when set and otherwise reuses `LLM_API_KEY`. Vector
+dimensions are checked before storage and retrieval. `EMBEDDING_PROVIDER=openai_compatible`
+can be used with a compatible embeddings endpoint. Adjust `RAG_MAX_DISTANCE` only
+after evaluation.
+
+Run the repeatable ingestion command after PostgreSQL with pgvector is available:
+
+```powershell
+python -m app.ingest
+```
+
+It reads text pages from `data/raw/pages/`, PDFs from `data/raw/pdfs/` and PDF
+files at `data/raw/`, extracts text, chunks on sentence boundaries where possible,
+and inserts only chunks not already present for the selected embedding model and
+dimension. Scanned PDFs without an extractable text layer are skipped with a log
+message; image OCR is not included.
+
 ## Live link
 
 Coming in Week 2.
