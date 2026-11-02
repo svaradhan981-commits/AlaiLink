@@ -6,6 +6,15 @@ from typing import Literal
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Default pricing per million tokens in USD
+DEFAULT_MODEL_PRICING: dict[str, dict[str, float]] = {
+    "gemini-3.5-flash-lite": {"input_per_million": 0.075, "output_per_million": 0.30},
+    "gemini-1.5-flash": {"input_per_million": 0.075, "output_per_million": 0.30},
+    "gemini-1.5-flash-8b": {"input_per_million": 0.0375, "output_per_million": 0.15},
+    "gemini-1.5-pro": {"input_per_million": 1.25, "output_per_million": 5.00},
+    "gemini-2.0-flash": {"input_per_million": 0.10, "output_per_million": 0.40},
+}
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -26,6 +35,11 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = Field(default=90.0, gt=0)
     llm_max_retries: int = Field(default=1, ge=0, le=5)
     llm_retry_delay_seconds: float = Field(default=1.0, ge=0)
+
+    # Cost and pricing configuration (USD per 1,000,000 tokens)
+    llm_default_input_cost_per_million: float = Field(default=0.075, ge=0)
+    llm_default_output_cost_per_million: float = Field(default=0.30, ge=0)
+    llm_pricing_json: str | None = None
 
     database_url: SecretStr | None = None
     embedding_provider: Literal["gemini", "openai_compatible"] = "gemini"

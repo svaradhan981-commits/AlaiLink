@@ -1,12 +1,15 @@
 import asyncio
 import json
+import logging
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.config import Settings, get_settings
-from app.schemas import ChatRequest, ChatResponse
+from app.database import DatabaseConfigurationError, initialize_database
+from app.schemas import ChatRequest, ChatResponse, UsageSummaryResponse
 from app.services.chat import (
     GeneratedAnswer,
     LLMConfigurationError,
@@ -16,10 +19,37 @@ from app.services.chat import (
     stream_answer,
 )
 from app.services.rag import RAGUnavailableError, format_evidence, retrieve_context
+from app.services.usage import get_usage_service
 
-app = FastAPI(title="AlaiLink Fisheries Scheme Assistant", version="0.2.0")
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    if settings.database_url:
+        try:
+            await initialize_database(settings)
+            logger.info("Database initialized successfully.")
+        except Exception as error:
+            logger.warning("Could not initialize database on startup: %s", error)
+    yield
+
+
+app = FastAPI(
+    title="AlaiLink Fisheries Scheme Assistant",
+    version="0.2.0",
+    lifespan=lifespan,
+)
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+
+
+@app.exception_handler(DatabaseConfigurationError)
+async def database_configuration_error_handler(
+    _, error: DatabaseConfigurationError
+) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"detail": str(error)})
 
 
 @app.exception_handler(LLMConfigurationError)
@@ -128,3 +158,12 @@ async def chat_stream(
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@app.get("/usage", response_model=UsageSummaryResponse)
+async def get_usage(settings: SettingsDep) -> UsageSummaryResponse:
+    if not settings.database_url:
+        raise DatabaseConfigurationError("DATABASE_URL is not configured.")
+    usage_service = get_usage_service(settings)
+    return await usage_service.get_usage_summary()
+

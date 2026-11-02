@@ -1,10 +1,10 @@
 
-import time
 import hashlib
 import re
+import time
 from collections import deque
 from pathlib import Path
-from urllib.parse import urljoin, urlparse, urldefrag, unquote
+from urllib.parse import unquote, urldefrag, urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
 import requests

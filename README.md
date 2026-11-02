@@ -77,6 +77,34 @@ indicates that a failed partial attempt was discarded before a retry/fallback,
 message. In Swagger, open `/docs`, choose `POST /chat/stream`, and execute a request;
 for streaming event inspection, use an SSE-capable client such as `curl -N`.
 
+## Usage and cost tracking API
+
+AlaiLink records all LLM requests (including timestamp, model, tokens, latency, status, and calculated cost) to PostgreSQL. Inspect usage anytime:
+
+```bash
+curl http://localhost:8000/usage
+```
+
+This returns aggregate request counts, token totals, estimated cost based on configurable model rates, breakdown by model (showing both primary and fallback model usage), and recent records. Missing provider usage metadata is handled gracefully without inventing token counts or costs.
+
+## Docker Compose (API + PostgreSQL/pgvector)
+
+Run the entire stack with a single command:
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- `db`: PostgreSQL 16 with pgvector extension pre-installed, health-checked, and backed by the `postgres_data` volume.
+- `api`: FastAPI application waiting for the database to become healthy, with automatic schema and pgvector extension initialization via FastAPI lifespan.
+
+Verify the services:
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/usage
+```
+
 ## Document retrieval
 
 Set `DATABASE_URL` and the embedding variables shown in `.env.example`. The default
@@ -98,6 +126,20 @@ and inserts only chunks not already present for the selected embedding model and
 dimension. Scanned PDFs without an extractable text layer are skipped with a log
 message; image OCR is not included.
 
+## Production deployment
+
+The application is containerized and ready for deployment on platforms such as Render, Railway, Fly.io, or an Ubuntu VPS.
+
+### Environment variables required in production:
+- `PORT`: Service port (default: 8000)
+- `ENVIRONMENT`: Set to `production`
+- `DATABASE_URL`: Connection string for PostgreSQL with pgvector
+- `LLM_API_KEY`: Secret API key for Gemini / OpenAI-compatible endpoint
+- `LLM_MODEL`: e.g. `gemini-3.5-flash-lite`
+- `LLM_FALLBACK_MODEL`: e.g. `gemini-1.5-flash`
+
+Never commit secrets to Git.
+
 ## Live link
 
-Coming in Week 2.
+Deployment configured and ready for production hosting. Update this section with your live deployment URL (e.g. `https://alailink.onrender.com`) upon provisioning cloud hosting.
