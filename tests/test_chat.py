@@ -375,3 +375,35 @@ def test_chat_stream_retries_primary_then_uses_fallback(client, monkeypatch):
         "gemini-3.5-flash-lite",
         "stream-fallback",
     ]
+
+
+def test_chat_handles_invalid_llm_json_response(client, monkeypatch):
+    async_client = httpx.AsyncClient
+    _mock_retrieval(monkeypatch)
+
+    async def handler(_request):
+        # LLM returns malformed JSON content
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": "Not valid JSON at all!"
+                        }
+                    }
+                ]
+            },
+        )
+
+    monkeypatch.setattr(
+        "app.services.chat.httpx.AsyncClient",
+        lambda **kwargs: async_client(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    client.app.dependency_overrides[get_settings] = lambda: _configured_settings()
+
+    response = client.post("/chat", json={"question": "Question?", "language": "en"})
+
+    assert response.status_code == 502
+    assert response.json() == {"detail": "The LLM provider returned an invalid response."}
+

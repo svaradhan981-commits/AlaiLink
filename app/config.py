@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     app_name: str = "AlaiLink"
     environment: str = "local"
+    allowed_origins: str = "*"
 
     llm_provider: Literal["openai_compatible"] = "openai_compatible"
 

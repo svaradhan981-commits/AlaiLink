@@ -29,6 +29,7 @@ services:
     environment:
       APP_NAME: AlaiLink
       ENVIRONMENT: production
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
       DATABASE_URL: postgresql+psycopg://alailink:alailink@db:5432/alailink
       LLM_PROVIDER: ${LLM_PROVIDER:-openai_compatible}
       LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash-lite}

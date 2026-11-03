@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.config import Settings, get_settings
@@ -40,6 +41,21 @@ app = FastAPI(
     title="AlaiLink Fisheries Scheme Assistant",
     version="0.2.0",
     lifespan=lifespan,
+)
+
+_initial_settings = get_settings()
+_cors_origins = (
+    [origin.strip() for origin in _initial_settings.allowed_origins.split(",") if origin.strip()]
+    if _initial_settings.allowed_origins != "*"
+    else ["*"]
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]

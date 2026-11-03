@@ -31,4 +31,7 @@ jobs:
         run: python -c "import app.main; print('Application imported successfully.')"
 
       - name: Run automated tests
-        run: pytest -v
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -v
+
