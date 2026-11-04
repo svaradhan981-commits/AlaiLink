@@ -1,4 +1,3 @@
-
 import hashlib
 import re
 import time
@@ -17,9 +16,7 @@ PDF_DIR = Path("data/raw/pdfs")
 PAGES_DIR.mkdir(parents=True, exist_ok=True)
 PDF_DIR.mkdir(parents=True, exist_ok=True)
 
-HEADERS = {
-    "User-Agent": "AlaiLinkResearchBot/1.0 (educational research)"
-}
+HEADERS = {"User-Agent": "AlaiLinkResearchBot/1.0 (educational research)"}
 
 DELAY = 0.7
 TIMEOUT = 30
@@ -65,9 +62,7 @@ def allowed_by_robots(url):
 
         robots_cache[origin] = parser
 
-    return robots_cache[origin].can_fetch(
-        HEADERS["User-Agent"], url
-    )
+    return robots_cache[origin].can_fetch(HEADERS["User-Agent"], url)
 
 
 def filename_for(title, url, suffix):
@@ -112,18 +107,12 @@ def download_pdf(url, response):
 
 
 def extract_text(soup):
-    for element in soup(
-        ["script", "style", "noscript", "svg", "nav", "footer"]
-    ):
+    for element in soup(["script", "style", "noscript", "svg", "nav", "footer"]):
         element.decompose()
 
     main = soup.find("main") or soup.find("article") or soup.body or soup
 
-    return "\n".join(
-        line.strip()
-        for line in main.get_text("\n").splitlines()
-        if line.strip()
-    )
+    return "\n".join(line.strip() for line in main.get_text("\n").splitlines() if line.strip())
 
 
 def crawl(seed_urls):
@@ -155,22 +144,18 @@ def crawl(seed_urls):
                 stream=True,
                 allow_redirects=True,
             ) as response:
-
                 if response.status_code in (401, 403, 429):
                     print(f"BLOCKED ({response.status_code}): {url}")
                     continue
 
                 response.raise_for_status()
 
-                content_type = response.headers.get(
-                    "Content-Type", ""
-                ).lower()
+                content_type = response.headers.get("Content-Type", "").lower()
 
                 final_url = response.url
 
-                is_pdf = (
-                    "application/pdf" in content_type
-                    or urlparse(final_url).path.lower().endswith(".pdf")
+                is_pdf = "application/pdf" in content_type or urlparse(final_url).path.lower().endswith(
+                    ".pdf"
                 )
 
                 if is_pdf:
@@ -178,32 +163,22 @@ def crawl(seed_urls):
                     time.sleep(DELAY)
                     continue
 
-                if (
-                    "text/html" not in content_type
-                    and "application/xhtml+xml" not in content_type
-                ):
+                if "text/html" not in content_type and "application/xhtml+xml" not in content_type:
                     print(f"SKIP (unsupported content): {url}")
                     continue
 
                 html = response.text
 
             soup = BeautifulSoup(html, "html.parser")
-            title = (
-                soup.title.get_text(" ", strip=True)
-                if soup.title else urlparse(final_url).path
-            )
+            title = soup.title.get_text(" ", strip=True) if soup.title else urlparse(final_url).path
 
             text = extract_text(soup)
 
             if text:
-                output_path = PAGES_DIR / filename_for(
-                    title, final_url, ".txt"
-                )
+                output_path = PAGES_DIR / filename_for(title, final_url, ".txt")
 
                 output_path.write_text(
-                    f"TITLE: {title}\n"
-                    f"SOURCE_URL: {final_url}\n\n"
-                    f"{text}\n",
+                    f"TITLE: {title}\nSOURCE_URL: {final_url}\n\n{text}\n",
                     encoding="utf-8",
                 )
 
@@ -211,9 +186,7 @@ def crawl(seed_urls):
 
             # Discover links on the supplied website hosts.
             for anchor in soup.find_all("a", href=True):
-                next_url = clean_url(
-                    urljoin(final_url, anchor["href"])
-                )
+                next_url = clean_url(urljoin(final_url, anchor["href"]))
 
                 if not next_url:
                     continue

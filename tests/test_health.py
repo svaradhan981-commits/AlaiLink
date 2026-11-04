@@ -8,4 +8,3 @@ def test_hello_is_ok(client):
     r = client.get("/hello")
     assert r.status_code == 200
     assert r.json() == {"message": "Hello  AlaiLink in test!"}
-

@@ -82,9 +82,8 @@ async def embed_texts(
     if len(vectors) != len(texts):
         raise EmbeddingProviderError("The embedding provider returned an unexpected number of vectors.")
     for vector in vectors:
-        if (
-            len(vector) != settings.embedding_dimensions
-            or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in vector)
+        if len(vector) != settings.embedding_dimensions or not all(
+            isinstance(value, (int, float)) and math.isfinite(value) for value in vector
         ):
             raise EmbeddingProviderError("The embedding dimensions do not match configuration.")
     return vectors

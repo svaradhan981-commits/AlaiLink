@@ -86,14 +86,9 @@ def extract_document(path: Path) -> SourceDocument:
             parser.feed(content)
             content = "\n".join(part.strip() for part in parser.parts if part.strip())
         metadata = {
-            match.group(1): match.group(2).strip()
-            for match in _METADATA_PATTERN.finditer(content[:2000])
+            match.group(1): match.group(2).strip() for match in _METADATA_PATTERN.finditer(content[:2000])
         }
-        title = (
-            metadata.get("TITLE")
-            or (" ".join(parser.title_parts).strip() if parser else None)
-            or title
-        )
+        title = metadata.get("TITLE") or (" ".join(parser.title_parts).strip() if parser else None) or title
         source_url = metadata.get("SOURCE_URL") or (parser.source_url if parser else None)
         if source_url:
             parsed_url = urlsplit(source_url)
@@ -158,10 +153,7 @@ def chunk_text(text: str, *, max_chars: int = 1200, overlap_chars: int = 150) ->
                     if part:
                         parts.append(part)
                         part = ""
-                    parts.extend(
-                        word[start : start + max_chars]
-                        for start in range(0, len(word), max_chars)
-                    )
+                    parts.extend(word[start : start + max_chars] for start in range(0, len(word), max_chars))
                 elif part and len(candidate) > max_chars:
                     parts.append(part)
                     overlap_words = []

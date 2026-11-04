@@ -62,9 +62,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 @app.exception_handler(DatabaseConfigurationError)
-async def database_configuration_error_handler(
-    _, error: DatabaseConfigurationError
-) -> JSONResponse:
+async def database_configuration_error_handler(_, error: DatabaseConfigurationError) -> JSONResponse:
     return JSONResponse(status_code=503, content={"detail": str(error)})
 
 
@@ -102,14 +100,10 @@ def health(settings: SettingsDep) -> dict:
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, settings: SettingsDep) -> ChatResponse:
     if settings.llm_api_key is None and settings.embedding_api_key is None:
-        raise LLMConfigurationError(
-            "LLM_API_KEY or EMBEDDING_API_KEY is not configured."
-        )
+        raise LLMConfigurationError("LLM_API_KEY or EMBEDDING_API_KEY is not configured.")
     chunks = await retrieve_context(request.question, settings)
     evidence, sources = format_evidence(chunks)
-    answer, summary = await generate_answer(
-        request.question, request.language, settings, evidence
-    )
+    answer, summary = await generate_answer(request.question, request.language, settings, evidence)
     return ChatResponse(
         answer=answer,
         language=request.language,
@@ -125,16 +119,12 @@ async def chat_stream(
     settings: SettingsDep,
 ) -> StreamingResponse:
     if settings.llm_api_key is None and settings.embedding_api_key is None:
-        raise LLMConfigurationError(
-            "LLM_API_KEY or EMBEDDING_API_KEY is not configured."
-        )
+        raise LLMConfigurationError("LLM_API_KEY or EMBEDDING_API_KEY is not configured.")
     chunks = await retrieve_context(request.question, settings)
     evidence, sources = format_evidence(chunks)
 
     async def events():
-        answer_stream = stream_answer(
-            request.question, request.language, settings, evidence
-        )
+        answer_stream = stream_answer(request.question, request.language, settings, evidence)
         try:
             async for event_type, value in answer_stream:
                 if await http_request.is_disconnected():
@@ -146,10 +136,7 @@ async def chat_stream(
                     data = ChatResponse(
                         answer=value.answer,
                         language=request.language,
-                        sources=[
-                            {"title": source.title, "url": source.url}
-                            for source in sources
-                        ],
+                        sources=[{"title": source.title, "url": source.url} for source in sources],
                         summary=value.summary,
                     ).model_dump(mode="json")
                 else:
@@ -162,10 +149,7 @@ async def chat_stream(
         except LLMTimeoutError as error:
             yield f"event: error\ndata: {json.dumps({'detail': str(error)})}\n\n"
         except LLMProviderError as error:
-            yield (
-                f"event: error\ndata: "
-                f"{json.dumps({'detail': str(error)}, ensure_ascii=False)}\n\n"
-            )
+            yield (f"event: error\ndata: {json.dumps({'detail': str(error)}, ensure_ascii=False)}\n\n")
         finally:
             await answer_stream.aclose()
 
@@ -182,4 +166,3 @@ async def get_usage(settings: SettingsDep) -> UsageSummaryResponse:
         raise DatabaseConfigurationError("DATABASE_URL is not configured.")
     usage_service = get_usage_service(settings)
     return await usage_service.get_usage_summary()
-

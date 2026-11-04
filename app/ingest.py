@@ -17,9 +17,7 @@ async def ingest() -> int:
     if not settings.database_url:
         raise RuntimeError("DATABASE_URL is not configured.")
     if settings.embedding_api_key is None and settings.llm_api_key is None:
-        raise RuntimeError(
-            "Neither EMBEDDING_API_KEY nor LLM_API_KEY is configured for embeddings."
-        )
+        raise RuntimeError("Neither EMBEDDING_API_KEY nor LLM_API_KEY is configured for embeddings.")
 
     await initialize_database(settings)
     session_factory = get_session_factory(settings)
@@ -39,9 +37,7 @@ async def ingest() -> int:
             )
             existing = set(existing_result.scalars().all())
             pending = [
-                (document, index, chunk)
-                for index, chunk in enumerate(chunks)
-                if index not in existing
+                (document, index, chunk) for index, chunk in enumerate(chunks) if index not in existing
             ]
             pending_chunks.extend(pending)
         await session.commit()

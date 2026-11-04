@@ -39,9 +39,12 @@ class _AttemptFailure(Exception):
 
     @property
     def retryable(self) -> bool:
-        return self.timed_out or self.status_code == 429 or (
-            self.status_code is not None and self.status_code >= 500
-        ) or self.status_code is None
+        return (
+            self.timed_out
+            or self.status_code == 429
+            or (self.status_code is not None and self.status_code >= 500)
+            or self.status_code is None
+        )
 
 
 def _payload(question: str, language: str, model: str, evidence: str) -> dict:
@@ -127,9 +130,7 @@ async def _request_answer(
 
             usage_info = response_data.get("usage") if isinstance(response_data, dict) else None
             prompt_tokens = usage_info.get("prompt_tokens") if isinstance(usage_info, dict) else None
-            completion_tokens = (
-                usage_info.get("completion_tokens") if isinstance(usage_info, dict) else None
-            )
+            completion_tokens = usage_info.get("completion_tokens") if isinstance(usage_info, dict) else None
             total_tokens = usage_info.get("total_tokens") if isinstance(usage_info, dict) else None
 
             answer = _read_answer(response_data)
@@ -221,9 +222,7 @@ async def generate_answer(
     async with httpx.AsyncClient() as client:
         for index, model in enumerate(models):
             try:
-                generated = await _request_answer(
-                    client, question, language, model, settings, evidence
-                )
+                generated = await _request_answer(client, question, language, model, settings, evidence)
                 return generated.answer, generated.summary
             except (LLMTimeoutError, LLMProviderError):
                 if index + 1 == len(models):

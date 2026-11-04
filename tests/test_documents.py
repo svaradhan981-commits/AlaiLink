@@ -43,10 +43,7 @@ def test_chunking_keeps_chunks_within_limit_and_overlaps():
 
     assert len(chunks) > 1
     assert all(len(chunk) <= 90 for chunk in chunks)
-    assert all(
-        chunks[index].split()[-1] in chunks[index + 1]
-        for index in range(1, len(chunks) - 2)
-    )
+    assert all(chunks[index].split()[-1] in chunks[index + 1] for index in range(1, len(chunks) - 2))
 
 
 def test_chunking_handles_words_longer_than_chunk_size():

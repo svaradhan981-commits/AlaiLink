@@ -41,9 +41,7 @@ class DocumentChunk(Base):
     embedding_provider: Mapped[str] = mapped_column(String(50))
     embedding_model: Mapped[str] = mapped_column(String(200))
     embedding_dimensions: Mapped[int] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class LLMUsageRecord(Base):
@@ -62,7 +60,6 @@ class LLMUsageRecord(Base):
     status: Mapped[str] = mapped_column(String(50), index=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     endpoint: Mapped[str | None] = mapped_column(String(50), nullable=True)
-
 
 
 @lru_cache(maxsize=4)

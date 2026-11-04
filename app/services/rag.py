@@ -34,11 +34,13 @@ async def retrieve_context(question: str, settings: Settings) -> list[RetrievedC
         engine = session_factory.kw["bind"]
         async with engine.connect() as connection:
             await connection.exec_driver_sql("SELECT 1")
-        query_vector = (await embed_texts(
-            [question],
-            settings,
-            task_type="RETRIEVAL_QUERY",
-        ))[0]
+        query_vector = (
+            await embed_texts(
+                [question],
+                settings,
+                task_type="RETRIEVAL_QUERY",
+            )
+        )[0]
         distance = DocumentChunk.embedding.cosine_distance(query_vector).label("distance")
         statement = (
             select(DocumentChunk, distance)
@@ -79,11 +81,7 @@ def format_evidence(chunks: list[RetrievedChunk]) -> tuple[str, list[RetrievedSo
             sources.append(chunk.source)
             seen.add(chunk.source.url)
         citation = next(
-            (
-                f"[{index}]"
-                for index, source in enumerate(sources, start=1)
-                if chunk.source == source
-            ),
+            (f"[{index}]" for index, source in enumerate(sources, start=1) if chunk.source == source),
             "[unverified source]",
         )
         context_lines.append(

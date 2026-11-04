@@ -87,14 +87,10 @@ def test_chat_requires_provider_configuration(client):
     response = client.post("/chat", json={"question": "How do I apply?", "language": "en"})
 
     assert response.status_code == 503
-    assert response.json() == {
-        "detail": "LLM_API_KEY or EMBEDDING_API_KEY is not configured."
-    }
+    assert response.json() == {"detail": "LLM_API_KEY or EMBEDDING_API_KEY is not configured."}
 
 
-def test_chat_can_answer_unverified_without_llm_key_when_embedding_key_is_configured(
-    client, monkeypatch
-):
+def test_chat_can_answer_unverified_without_llm_key_when_embedding_key_is_configured(client, monkeypatch):
     async def no_results(_question, _settings):
         del _question, _settings
         return []
@@ -177,11 +173,7 @@ def test_chat_retries_rate_limit(client, monkeypatch):
             return httpx.Response(429)
         return httpx.Response(
             200,
-            json={
-                "choices": [
-                    {"message": {"content": '{"answer":"Verified answer","summary":"Summary"}'}}
-                ]
-            },
+            json={"choices": [{"message": {"content": '{"answer":"Verified answer","summary":"Summary"}'}}]},
         )
 
     monkeypatch.setattr(
@@ -232,11 +224,7 @@ def test_chat_uses_fallback_after_primary_retries(client, monkeypatch):
             return httpx.Response(503)
         return httpx.Response(
             200,
-            json={
-                "choices": [
-                    {"message": {"content": '{"answer":"Fallback answer","summary":"Summary"}'}}
-                ]
-            },
+            json={"choices": [{"message": {"content": '{"answer":"Fallback answer","summary":"Summary"}'}}]},
         )
 
     monkeypatch.setattr(
@@ -264,9 +252,7 @@ def test_chat_stream_emits_progressive_deltas_and_structured_completion(client, 
     async def handler(request):
         assert json.loads(request.read())["stream"] is True
         chunks = [
-            "data: "
-            + json.dumps({"choices": [{"delta": {"content": fragment}}]})
-            + "\n\n"
+            "data: " + json.dumps({"choices": [{"delta": {"content": fragment}}]}) + "\n\n"
             for fragment in fragments
         ]
         chunks.append("data: [DONE]\n\n")
@@ -342,13 +328,9 @@ def test_chat_stream_retries_primary_then_uses_fallback(client, monkeypatch):
             return httpx.Response(503)
         chunks = [
             "data: "
-            + json.dumps(
-                {"choices": [{"delta": {"content": '{"answer":"Fallback stream",'}}]}
-            )
+            + json.dumps({"choices": [{"delta": {"content": '{"answer":"Fallback stream",'}}]})
             + "\n\n",
-            "data: "
-            + json.dumps({"choices": [{"delta": {"content": '"summary":"Done"}'}}]})
-            + "\n\n",
+            "data: " + json.dumps({"choices": [{"delta": {"content": '"summary":"Done"}'}}]}) + "\n\n",
             "data: [DONE]\n\n",
         ]
         return httpx.Response(200, text="".join(chunks))
@@ -385,15 +367,7 @@ def test_chat_handles_invalid_llm_json_response(client, monkeypatch):
         # LLM returns malformed JSON content
         return httpx.Response(
             200,
-            json={
-                "choices": [
-                    {
-                        "message": {
-                            "content": "Not valid JSON at all!"
-                        }
-                    }
-                ]
-            },
+            json={"choices": [{"message": {"content": "Not valid JSON at all!"}}]},
         )
 
     monkeypatch.setattr(
@@ -406,4 +380,3 @@ def test_chat_handles_invalid_llm_json_response(client, monkeypatch):
 
     assert response.status_code == 502
     assert response.json() == {"detail": "The LLM provider returned an invalid response."}
-

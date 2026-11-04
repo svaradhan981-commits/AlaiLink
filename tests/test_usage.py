@@ -224,13 +224,7 @@ def test_chat_logs_usage_on_success(client, monkeypatch):
         return httpx.Response(
             200,
             json={
-                "choices": [
-                    {
-                        "message": {
-                            "content": '{"answer":"Verified scheme","summary":"Summary"}'
-                        }
-                    }
-                ],
+                "choices": [{"message": {"content": '{"answer":"Verified scheme","summary":"Summary"}'}}],
                 "usage": {
                     "prompt_tokens": 120,
                     "completion_tokens": 40,
@@ -278,15 +272,7 @@ def test_chat_logs_usage_with_missing_provider_metadata(client, monkeypatch):
         # Provider response without usage dictionary
         return httpx.Response(
             200,
-            json={
-                "choices": [
-                    {
-                        "message": {
-                            "content": '{"answer":"Verified scheme","summary":"Summary"}'
-                        }
-                    }
-                ]
-            },
+            json={"choices": [{"message": {"content": '{"answer":"Verified scheme","summary":"Summary"}'}}]},
         )
 
     original_client = httpx.AsyncClient
@@ -333,13 +319,7 @@ def test_chat_logs_primary_failure_and_fallback_success(client, monkeypatch):
         return httpx.Response(
             200,
             json={
-                "choices": [
-                    {
-                        "message": {
-                            "content": '{"answer":"Fallback answer","summary":"Summary"}'
-                        }
-                    }
-                ],
+                "choices": [{"message": {"content": '{"answer":"Fallback answer","summary":"Summary"}'}}],
                 "usage": {"prompt_tokens": 80, "completion_tokens": 20, "total_tokens": 100},
             },
         )
@@ -388,12 +368,8 @@ def test_chat_stream_logs_usage(client, monkeypatch):
 
     async def handler(_request):
         chunks = [
-            "data: "
-            + json.dumps({"choices": [{"delta": {"content": '{"answer":"Stream ans",'}}]})
-            + "\n\n",
-            "data: "
-            + json.dumps({"choices": [{"delta": {"content": '"summary":"Done"}'}}]})
-            + "\n\n",
+            "data: " + json.dumps({"choices": [{"delta": {"content": '{"answer":"Stream ans",'}}]}) + "\n\n",
+            "data: " + json.dumps({"choices": [{"delta": {"content": '"summary":"Done"}'}}]}) + "\n\n",
             "data: "
             + json.dumps(
                 {
@@ -424,4 +400,3 @@ def test_chat_stream_logs_usage(client, monkeypatch):
     assert logged_records[0]["status"] == "success"
     assert logged_records[0]["total_tokens"] == 65
     assert logged_records[0]["endpoint"] == "/chat/stream"
-

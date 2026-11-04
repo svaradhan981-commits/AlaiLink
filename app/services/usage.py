@@ -86,9 +86,7 @@ class UsageRepository:
         failed_requests = total_requests - successful_requests
 
         total_prompt_tokens = sum(r.prompt_tokens for r in records if r.prompt_tokens is not None)
-        total_completion_tokens = sum(
-            r.completion_tokens for r in records if r.completion_tokens is not None
-        )
+        total_completion_tokens = sum(r.completion_tokens for r in records if r.completion_tokens is not None)
         total_tokens = sum(r.total_tokens for r in records if r.total_tokens is not None)
         total_cost = round(sum(r.cost for r in records if r.cost is not None), 8)
 
