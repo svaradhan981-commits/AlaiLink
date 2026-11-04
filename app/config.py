@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     environment: str = "local"
     allowed_origins: str = "*"
 
-    llm_provider: Literal["openai_compatible"] = "openai_compatible"
+    llm_provider: Literal["openai_compatible", "openai_compat"] = "openai_compatible"
 
     # Primary and fallback models
     llm_model: str = "gemini-3.5-flash-lite"

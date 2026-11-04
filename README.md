@@ -1,5 +1,12 @@
 # AlaiLink — Tamil Nadu Fisheries Scheme Assistant
 
+[![CI](https://github.com/svaradhan981-commits/AlaiLink/actions/workflows/ci.yml/badge.svg)](https://github.com/svaradhan981-commits/AlaiLink/actions/workflows/ci.yml)
+[![Live on Render](https://img.shields.io/badge/Render-Live%20Service-brightgreen)](https://alailink-rag.onrender.com)
+
+- 🌐 **Live Deployment**: https://alailink-rag.onrender.com
+- 🩺 **Health Check**: https://alailink-rag.onrender.com/health
+- 📖 **API Docs (Swagger UI)**: https://alailink-rag.onrender.com/docs
+
 ## Problem
 
 Fishing families in Tamil Nadu need information about ban-period relief, lean-period assistance, savings-cum-relief schemes, insurance, and boat registration. However, the rules and application procedures are scattered across government websites, policy documents, and e-Sevai service pages. Coastal villages often have weak internet connectivity, making heavy websites difficult to access. AlaiLink provides simple Tamil and English answers with official source citations and lightweight responses that work reliably even on slow networks.
@@ -396,6 +403,12 @@ AlaiLink is pre-configured for deployment on Render as a Web Service:
    - `LLM_API_KEY`: *(Set secret Gemini API key in Render secret manager)*
 4. Health Check Path: `/health`.
 5. Deploy the service.
+
+### 3. Deployed Service Endpoints
+- **Live Base URL**: `https://alailink-rag.onrender.com`
+- **Health Check**: `https://alailink-rag.onrender.com/health`
+- **Interactive Documentation**: `https://alailink-rag.onrender.com/docs`
+- **Usage & Cost Analytics**: `https://alailink-rag.onrender.com/usage`
 
 ---
 
